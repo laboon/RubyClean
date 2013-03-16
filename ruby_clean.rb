@@ -2,16 +2,12 @@
 # @param [String] line - the line to check
 # @return [Boolean] true if potentially code, false if not
 def possibly_code?(line)
-  if  /puts/.match(line) ||
-      /=/.match(line) ||
-      /{/.match(line) ||
-      /}/.match(line) ||
-      /\+/.match(line) ||
-      /[[:space:]]+pp[[:space:]]+/.match(line)
-    true
-  else
-    false
-   end
+  /puts/.match(line) ||
+  /=/.match(line) ||
+  /{/.match(line) ||
+  /}/.match(line) ||
+  /\+/.match(line) ||
+  /[[:space:]]+pp[[:space:]]+/.match(line)
 end
 
 # Check a file for commented-out code.
