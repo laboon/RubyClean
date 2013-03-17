@@ -2,17 +2,13 @@
 # issues it finds.
 
 # Returns whether or not a line is commented-out.
-# @param [String] line - the line to check
-# @return [Boolean] true if commented out, false if not
 def commented_line?(line)
   /^[[:space:]]*#/.match(line)
 end
 
 # Check a commented-out line to see if it may be code.
-# @param [String] line - the line to check
-# @return [Boolean] true if potentially code, false if not
 def possibly_code?(line)
-  /puts/.match(line) ||
+  /[[:space:]]+puts[[:space:]]+/.match(line) ||
   /=/.match(line) ||
   /{/.match(line) ||
   /}/.match(line) ||
@@ -21,59 +17,65 @@ def possibly_code?(line)
 end
 
 # Returns whether or not a line has trailing whitespace.
-# @param [String] line - the line to check
-# @return [Boolean] true if it has trailing whitespace, false if not
 def has_trailing_whitespace?(line)
   /[[:space:]]+\Z/.match(line.chomp)
 end
 
+# Returns whether or not a line has hard tabs.
 def has_hard_tabs?(line)
   /\t+/.match(line)
 end
 
+# Returns whether or not a line has verbal Boolean operators (and / or) as opposed
+# to the preferred symbolic form ( && / || ).
 def has_verbal_operators?(line)
   /[[:space:]]+and[[:space:]]+/.match(line) || /[[:space:]]+or[[:space:]]+/.match(line)
 end
 
+# Returns whether or not a line has both do and end on the same line
 def do_and_end_same_line?(line)
   /[[:space:]]+do[[:space:]]+.*[[:space:]]+end[[:space:]]+/.match(line)
 end
 
+# Returns whether or not a line has a curly brace, but it is not matched on that line
 def braces_for_multiline?(line)
   !!/{/.match(line) ^ !!/}/.match(line)
 end
 
+# Returns whether the Ruby "set if not already set" operator ||= is used with a 
+# Boolean value.
 def double_pipes_initializing_boolean?(line)
   /\|\|=[[:space:]]*true/.match(line) || /\|\|=[[:space:]]*false/.match(line)
 end
 
-# def camel_case_in_method_name?(line)
-#   /def[[:space:]]+
-# end
-
+# Returns whether or not a class variable is used.
 def class_variable_used?(line)
   /[[:space:]]+@@/.match(line)
 end
 
+# Returns whether or not a bare Exception (not a specific kind) is rescued.
 def bare_exception_rescued?(line)
   /rescue[[:space:]]+Exception[[:space:]]+/.match(line)
 end
 
+# Returns whether or not a superfluous then was used.
 def if_with_then?(line)
   /[[:space:]]+if[[:space:]]+/.match(line) && /[[:space:]]+then[[:space:]]+/.match(line)
 end
 
+# Returns whether or not a "for" keyword was used.
 def for_used?(line)
   /[[:space:]]+for[[:space:]]+/.match(line)
 end
 
+# Returns whether or not a method was defined with no arguments but still had parens.
 def method_no_args_with_parens?(line)
   /def[[:space:]]+/.match(line) && /\([[:space:]]*\)/.match(line)
 end
 
 # Given a line of code, strip out any strings (e.g. "foo" or 'bar')
-# @param
-# @return
+# @param [String] line to strip
+# @return [String] same line with all specified string data stripped out
 def strip_strings(line)
   # remove everything between " ", ' ', and / /
 end
@@ -95,10 +97,8 @@ def check_file(file)
   text = File.open(file).read
   ctr = 0
   text.each_line do |line|
-    # puts line
     ctr += 1
-    begin      
-      
+    begin            
       # Universal (code and comment) style checks
       print_problem(file, ctr, line, "TRAILING WHITESPACE") if has_trailing_whitespace?(line) 
       print_problem(file, ctr, line, "HARD TABS") if has_hard_tabs?(line)
