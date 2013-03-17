@@ -1,3 +1,13 @@
+# Checks a directory recursively for Ruby files and outputs any style
+# issues it finds.
+
+# Returns whether or not a line is commented-out.
+# @param [String] line - the line to check
+# @return [Boolean] true if commented out, false if not
+def commented_line?(line)
+  /^[[:space:]]*#/.match(line)
+end
+
 # Check a commented-out line to see if it may be code.
 # @param [String] line - the line to check
 # @return [Boolean] true if potentially code, false if not
@@ -8,13 +18,6 @@ def possibly_code?(line)
   /}/.match(line) ||
   /\+/.match(line) ||
   /[[:space:]]+pp[[:space:]]+/.match(line)
-end
-
-# Returns whether or not a line is commented-out.
-# @param [String] line - the line to check
-# @return [Boolean] true if commented out, false if not
-def commented_line?(line)
-  /^[[:space:]]*#/.match(line)
 end
 
 # Returns whether or not a line has trailing whitespace.
@@ -49,15 +52,15 @@ end
 # end
 
 def class_variable_used?(line)
-
+  /[[:space:]]+@@/.match(line)
 end
 
 def bare_exception_rescued?(line)
-
+  /rescue[[:space:]]+Exception[[:space:]]+/.match(line)
 end
 
 def if_with_then?(line)
-
+  /[[:space:]]+if[[:space:]]+/.match(line) && /[[:space:]]+then[[:space:]]+/.match(line)
 end
 
 def for_used?(line)
@@ -65,7 +68,14 @@ def for_used?(line)
 end
 
 def method_no_args_with_parens?(line)
+  /def[[:space:]]+/.match(line) && /\([[:space:]]*\)/.match(line)
+end
 
+# Given a line of code, strip out any strings (e.g. "foo" or 'bar')
+# @param
+# @return
+def strip_strings(line)
+  # remove everything between " ", ' ', and / /
 end
 
 # Prints out a summary of a line with a possible problem.
@@ -88,7 +98,6 @@ def check_file(file)
     # puts line
     ctr += 1
     begin      
-
       
       # Universal (code and comment) style checks
       print_problem(file, ctr, line, "TRAILING WHITESPACE") if has_trailing_whitespace?(line) 
@@ -100,6 +109,11 @@ def check_file(file)
         print_problem(file, ctr, line, "SAME-LINE DO ... END") if do_and_end_same_line?(line)
         print_problem(file, ctr, line, "MULTI-LINE { .. }") if braces_for_multiline?(line)
         print_problem(file, ctr, line, "||= INITIALIZING BOOLEAN") if double_pipes_initializing_boolean?(line)
+        print_problem(file, ctr, line, "FOR USED") if for_used?(line)
+        print_problem(file, ctr, line, "METHOD DEFINITION W/ EMPTY PARENS") if method_no_args_with_parens?(line)
+        print_problem(file, ctr, line, "SUPERFLUOUS THEN") if if_with_then?(line)
+        print_problem(file, ctr, line, "CLASS VARIABLE USED") if class_variable_used?(line)
+        print_problem(file, ctr, line, "BARE EXCEPTION RESCUED") if bare_exception_rescued?(line)
       else
         # Comment style checks
         print_problem(file, ctr, line, "POSS COMMENTED CODE") if possibly_code?(line)
