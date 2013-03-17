@@ -77,7 +77,7 @@ end
 # @param [String] line to strip
 # @return [String] same line with all specified string data stripped out
 def strip_strings(line)
-  # remove everything between " ", ' ', and / /
+  line.gsub(/\'.*?\'/, "'...'").gsub(/\".*?\"/, "\"...\"").gsub(/\/.*?\//, "\/...\/")
 end
 
 # Prints out a summary of a line with a possible problem.
@@ -97,6 +97,7 @@ def check_file(file)
   text = File.open(file).read
   ctr = 0
   text.each_line do |line|
+    stripped_line = strip_strings(line)
     ctr += 1
     begin            
       # Universal (code and comment) style checks
@@ -105,18 +106,18 @@ def check_file(file)
 
       if !commented_line?(line)
         # Code style checks
-        print_problem(file, ctr, line, "VERBAL OPERATORS") if has_verbal_operators?(line) 
-        print_problem(file, ctr, line, "SAME-LINE DO ... END") if do_and_end_same_line?(line)
-        print_problem(file, ctr, line, "MULTI-LINE { .. }") if braces_for_multiline?(line)
-        print_problem(file, ctr, line, "||= INITIALIZING BOOLEAN") if double_pipes_initializing_boolean?(line)
-        print_problem(file, ctr, line, "FOR USED") if for_used?(line)
-        print_problem(file, ctr, line, "METHOD DEFINITION W/ EMPTY PARENS") if method_no_args_with_parens?(line)
-        print_problem(file, ctr, line, "SUPERFLUOUS THEN") if if_with_then?(line)
-        print_problem(file, ctr, line, "CLASS VARIABLE USED") if class_variable_used?(line)
-        print_problem(file, ctr, line, "BARE EXCEPTION RESCUED") if bare_exception_rescued?(line)
+        print_problem(file, ctr, line, "VERBAL OPERATORS") if has_verbal_operators?(stripped_line) 
+        print_problem(file, ctr, line, "SAME-LINE DO ... END") if do_and_end_same_line?(stripped_line)
+        print_problem(file, ctr, line, "MULTI-LINE { .. }") if braces_for_multiline?(stripped_line)
+        print_problem(file, ctr, line, "||= INITIALIZING BOOLEAN") if double_pipes_initializing_boolean?(stripped_line)
+        print_problem(file, ctr, line, "FOR USED") if for_used?(stripped_line)
+        print_problem(file, ctr, line, "METHOD DEFINITION W/ EMPTY PARENS") if method_no_args_with_parens?(stripped_line)
+        print_problem(file, ctr, line, "SUPERFLUOUS THEN") if if_with_then?(stripped_line)
+        print_problem(file, ctr, line, "CLASS VARIABLE USED") if class_variable_used?(stripped_line)
+        print_problem(file, ctr, line, "BARE EXCEPTION RESCUED") if bare_exception_rescued?(stripped_line)
       else
         # Comment style checks
-        print_problem(file, ctr, line, "POSS COMMENTED CODE") if possibly_code?(line)
+        print_problem(file, ctr, line, "POSSIBLE COMMENTED CODE") if possibly_code?(line)
       end
     rescue Exception => e
       # Ignore for now. Probably a UTF-8 problem.
