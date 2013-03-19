@@ -1,5 +1,4 @@
-# Checks a directory recursively for Ruby files and outputs any style
-# issues it finds.
+# Checks directories and/or Ruby files, and outputs any style issues it finds.
 
 # Returns whether or not a line is commented-out.
 def commented_line?(line)
@@ -73,6 +72,19 @@ def method_no_args_with_parens?(line)
   /def[[:space:]]+/.match(line) && /\([[:space:]]*\)/.match(line)
 end
 
+# Returns whether or not a cramped operator is found.  A cramped operator is an operator
+# without space around it (e.g. "foo=a+b" has cramped operators, "foo = a + b" does not).
+# TODO - does not do division (/).  Gets too confused with regexes.
+def cramped_operator?(line)
+  /\S[\=\+\-\*\%]\S/.match(line) && !(cramped_comparator?(line))
+end
+
+# Returns whether or not a cramped comparator is used.  A cramped comparator is a
+# comparator without space around it (e.g. "a<=b" is cramped; "a <= b" is not).
+def cramped_comparator?(line)
+  /\S(<|<=|>|>=|==|===|!=|<=>)\S/.match(line)
+end
+
 # Given a line of code, strip out any strings (e.g. "foo" or 'bar')
 # @param [String] line to strip
 # @return [String] same line with all specified string data stripped out
@@ -115,12 +127,15 @@ def check_file(file)
         print_problem(file, ctr, line, "SUPERFLUOUS THEN") if if_with_then?(stripped_line)
         print_problem(file, ctr, line, "CLASS VARIABLE USED") if class_variable_used?(stripped_line)
         print_problem(file, ctr, line, "BARE EXCEPTION RESCUED") if bare_exception_rescued?(stripped_line)
+        print_problem(file, ctr, line, "CRAMPED OPERATOR") if cramped_operator?(stripped_line)
+        print_problem(file, ctr, line, "CRAMPED COMPARATOR") if cramped_comparator?(stripped_line)
       else
         # Comment style checks
         print_problem(file, ctr, line, "POSSIBLE COMMENTED CODE") if possibly_code?(line)
       end
     rescue Exception => e
-      # Ignore for now. Probably a UTF-8 problem.
+      # Ignore for now. Probably a UTF-8 problem.  That's a style issue in itself, of course.
+      # TODO - clean this up.
       puts "Exception " + e.to_s
     end
   end
@@ -141,5 +156,5 @@ end
 # For each command-line argument passed in, traverse that directory and
 # read in each file.
 ARGV.each do |arg|
-  traverse arg
+  File.directory?(arg) ? traverse(arg) : check_file(arg)
 end

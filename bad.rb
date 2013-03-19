@@ -17,3 +17,6 @@ begin
 rescue Exception => e
   # ignore
 end
+a=b+c
+a<=b
+a!=b
