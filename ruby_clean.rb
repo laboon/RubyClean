@@ -74,6 +74,7 @@ end
 
 # Returns whether or not a cramped operator is found.  A cramped operator is an operator
 # without space around it (e.g. "foo=a+b" has cramped operators, "foo = a + b" does not).
+# Does not yet catch "half-cramped" comparators (e.g. "a< b").
 # TODO - does not do division (/).  Gets too confused with regexes.
 def cramped_operator?(line)
   /\S[\=\+\-\*\%]\S/.match(line) && !(cramped_comparator?(line))
@@ -142,7 +143,7 @@ def check_file(file)
 end
 
 # Traverse a directory path.
-# If a Ruby (.rb) file is found, check it for potential commented-out code
+# If a Ruby (.rb) file is found, check it for style violations
 # @param [String] directory - root directory to traverse
 def traverse (directory)
   Dir.chdir(directory) do
